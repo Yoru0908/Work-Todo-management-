@@ -7,13 +7,9 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "warehouse-tasks"
-database_id = "your-database-id-here"
+database_id = "d6a7ed26-12c3-45d9-a93b-faff6b8e8643"
 
 [vars]
 APP_NAME = "TaskFlow"
 
-# CORS settings
-[headers]
-Access-Control-Allow-Origin = "*"
-
-compatibility_date = "2024-09-23"
+compatibility_date = "2026-02-15"
