@@ -1,0 +1,24 @@
+{
+  "name": "warehouse-tasks",
+  "version": "1.0.0",
+  "description": "Task Management System with Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "drizzle-orm": "^0.29.3",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "wrangler": "^3.28.1",
+    "drizzle-kit": "^0.20.13",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.17",
+    "@types/bcryptjs": "^2.4.6"
+  }
+}

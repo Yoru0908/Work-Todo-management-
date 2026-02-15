@@ -1,0 +1,19 @@
+main = "src/index.ts"
+
+name = "warehouse-tasks"
+
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "warehouse-tasks"
+database_id = "your-database-id-here"
+
+[vars]
+APP_NAME = "TaskFlow"
+
+# CORS settings
+[headers]
+Access-Control-Allow-Origin = "*"
+
+compatibility_date = "2024-09-23"
