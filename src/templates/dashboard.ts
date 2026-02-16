@@ -10,10 +10,11 @@ interface DashboardProps {
   upcomingTasks?: Task[]
   futureTasks?: Task[]
   recentCompleted?: Task[]
+  guides?: Task[]  // ガイド/重点事項
   locale: Locale
 }
 
-export function DashboardPage({ t, user, stats, urgentTasks = [], upcomingTasks = [], futureTasks = [], recentCompleted = [], locale }: DashboardProps) {
+export function DashboardPage({ t, user, stats, urgentTasks = [], upcomingTasks = [], futureTasks = [], recentCompleted = [], guides = [], locale }: DashboardProps) {
   const safeStats = stats || { total: 0, urgent: 0, today: 0, completed: 0 }
   const today = new Date().toISOString().split('T')[0]
 
@@ -157,6 +158,27 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], upcomingTasks 
       </div>
     </div>
 
+    <!-- 🚨 ガイド/重点事項 -->
+    <div class="section" style="margin-top: 24px;">
+      <div class="section-header" style="margin-bottom: 16px;">
+        <h3 style="color: #dc2626; margin: 0;">🚨 ガイド/重点事項 (${guides.length}件)</h3>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">操作手順、注意点、重要事項</p>
+      </div>
+      ${guides.length === 0 ? '<p style="color: var(--text-muted);">ガイドなし</p>' :
+        '<div style="display: flex; flex-direction: column; gap: 8px;">' +
+        guides.map(guide => `
+          <div onclick="openTaskDetail(${guide.id})" style="padding: 14px; background: #FEF2F2; border-radius: 8px; cursor: pointer; border-left: 4px solid #dc2626; box-shadow: var(--shadow-sm);">
+            <div style="font-weight: 600; font-size: 0.95rem; color: #991b1b;">📌 ${guide.title}</div>
+            <div style="font-size: 0.8rem; color: #7f1d1d; margin-top: 6px; white-space: pre-wrap;">${guide.content ? (guide.content.substring(0, 150) + (guide.content.length > 150 ? '...' : '')) : (guide.notes || '')}</div>
+            <div style="display: flex; gap: 12px; margin-top: 8px; font-size: 0.75rem; color: #7f1d1d; opacity: 0.8;">
+              <span>👤 ${guide.requester || '—'}</span>
+              <span>📅 ${guide.deadline || '期限なし'}</span>
+            </div>
+          </div>
+        `).join('') + '</div>'
+      }
+    </div>
+
     <div class="section">
       <div class="section-header">
         <h3>${t.quickActions}</h3>
@@ -189,6 +211,7 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], upcomingTasks 
         window.urgentTasks = ${JSON.stringify(urgentTasks)};
         window.upcomingTasks = ${JSON.stringify(upcomingTasks)};
         window.futureTasks = ${JSON.stringify(futureTasks)};
+        window.guides = ${JSON.stringify(guides)};
       }
     </script>
 

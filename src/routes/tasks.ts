@@ -63,6 +63,12 @@ app.get('/', async (c) => {
     .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''))
     .slice(0, 5)
 
+  // 🚨 ガイド/重点事項 (category = 'guide')
+  const guides = allTasks
+    .filter(t => t.category === 'guide')
+    .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''))
+    .slice(0, 10)
+
   return c.html(DashboardPage({
     t,
     user,
@@ -71,6 +77,7 @@ app.get('/', async (c) => {
     upcomingTasks,
     futureTasks,
     recentCompleted,
+    guides,
     locale
   }))
 })
@@ -140,6 +147,8 @@ app.post('/api/tasks', async (c) => {
     assignee: body.assignee || '',
     notes: body.notes || '',
     isImportant: body.isImportant ? 1 : 0,
+    category: body.category || 'task', // 'task' or 'guide'
+    content: body.content || null, // Detailed content for guides
     createdBy: user.id,
   }).returning()
 

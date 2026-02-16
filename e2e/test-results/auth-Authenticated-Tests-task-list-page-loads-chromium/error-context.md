@@ -1,0 +1,96 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - heading "TaskFlow" [level=1] [ref=e9]
+    - navigation [ref=e10]:
+      - listitem [ref=e11]:
+        - link "ダッシュボード" [ref=e12] [cursor=pointer]:
+          - /url: /?lang=ja
+          - img [ref=e13]
+          - generic [ref=e15]: ダッシュボード
+      - listitem [ref=e16]:
+        - link "タスク一覧" [ref=e17] [cursor=pointer]:
+          - /url: /tasks?lang=ja
+          - img [ref=e18]
+          - generic [ref=e20]: タスク一覧
+      - listitem [ref=e21]:
+        - link "管理者設定" [ref=e22] [cursor=pointer]:
+          - /url: /admin?lang=ja
+          - img [ref=e23]
+          - generic [ref=e26]: 管理者設定
+      - listitem [ref=e27]:
+        - link "新入庫スケジュール" [ref=e28] [cursor=pointer]:
+          - /url: /schedule?lang=ja
+          - img [ref=e29]
+          - generic [ref=e31]: 新入庫スケジュール
+      - listitem [ref=e32]:
+        - link "SKU入庫明細" [ref=e33] [cursor=pointer]:
+          - /url: /sku?lang=ja
+          - img [ref=e34]
+          - generic [ref=e37]: SKU入庫明細
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - button "日本語" [ref=e40] [cursor=pointer]
+        - button "中文" [ref=e41] [cursor=pointer]
+      - generic [ref=e42]:
+        - generic [ref=e43]: A
+        - generic [ref=e44]:
+          - generic [ref=e45]: Administrator
+          - generic [ref=e46]: 管理者
+      - link "ログアウト" [ref=e47] [cursor=pointer]:
+        - /url: /logout
+        - img [ref=e48]
+        - generic [ref=e50]: ログアウト
+  - main [ref=e51]:
+    - generic [ref=e52]:
+      - heading "タスク一覧" [level=2] [ref=e53]
+      - button "追加" [ref=e54] [cursor=pointer]:
+        - img [ref=e55]
+        - text: 追加
+    - generic [ref=e56]:
+      - combobox [ref=e57] [cursor=pointer]:
+        - option "フィルター - 未着手/完了" [selected]
+        - option "未着手"
+        - option "着手中"
+        - option "完了"
+        - option "保留"
+      - combobox [ref=e58] [cursor=pointer]:
+        - option "フィルター - 緊急/低" [selected]
+        - option "緊急"
+        - option "高"
+        - option "中"
+        - option "低"
+      - combobox [ref=e59] [cursor=pointer]:
+        - option "フィルター - 種類" [selected]
+        - option "その他"
+        - option "商品撮影"
+        - option "商品掲載"
+        - option "在庫確認"
+        - option "包装"
+        - option "発送"
+        - option "クレーム対応"
+        - option "その他"
+    - table [ref=e61]:
+      - rowgroup [ref=e62]:
+        - row "種類 タイトル 緊急 ステータス 期限 担当者 アクション" [ref=e63]:
+          - columnheader "種類" [ref=e64]
+          - columnheader "タイトル" [ref=e65]
+          - columnheader "緊急" [ref=e66]
+          - columnheader "ステータス" [ref=e67]
+          - columnheader "期限" [ref=e68]
+          - columnheader "担当者" [ref=e69]
+          - columnheader "アクション" [ref=e70]
+      - rowgroup [ref=e71]:
+        - row "データがありません" [ref=e72]:
+          - cell "データがありません" [ref=e73]
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - heading "タスク詳細" [level=2] [ref=e76]
+        - button [ref=e77] [cursor=pointer]:
+          - img [ref=e78]
+      - generic [ref=e81]: 読み込み中...
+```

@@ -23,6 +23,10 @@ export const tasks = sqliteTable('tasks', {
     assignee: text('assignee').default(''),
     notes: text('notes').default(''),
     isImportant: integer('is_important').default(0),
+    // Category: task (タスク) or guide (ガイド/重点事項)
+    category: text('category').default('task'),
+    // Detailed content for guides (操作手順、注意点など)
+    content: text('content'),
     createdBy: integer('created_by').references(() => users.id),
     createdAt: text('created_at').default(new Date().toISOString()),
     updatedAt: text('updated_at').default(new Date().toISOString()),
