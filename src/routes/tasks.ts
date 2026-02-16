@@ -27,33 +27,37 @@ app.get('/', async (c) => {
   const db = drizzle(c.env.DB)
 
   const allTasks = await db.select().from(tasks)
-  const total = allTasks.length
-  const urgent = allTasks.filter(t => t.priority === '緊急').length
   const today = new Date().toISOString().split('T')[0]
-  const todayTasks = allTasks.filter(t => t.deadline?.startsWith(today)).length
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+  const next3days = new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]
+
+  const total = allTasks.length
   const completed = allTasks.filter(t => t.status === '完了').length
 
-  // Get urgent tasks
+  // 🔴 緊急: 優先度緊急 或 今天/明天截止
   const urgentTasks = allTasks
-    .filter(t => t.priority === '緊急' && t.status !== '完了')
-    .sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''))
+    .filter(t => t.status !== '完了' && (t.priority === '緊急' || t.deadline === today || t.deadline === tomorrow))
+    .sort((a, b) => {
+      // 紧急优先度排最前，然后按截止日期
+      if (a.priority === '緊急' && b.priority !== '緊急') return -1
+      if (a.priority !== '緊急' && b.priority === '緊急') return 1
+      return (a.deadline || '').localeCompare(b.deadline || '')
+    })
     .slice(0, 10)
 
-  // Get today's tasks
-  const todayDeadlineTasks = allTasks
-    .filter(t => t.deadline?.startsWith(today) && t.status !== '完了')
-    .slice(0, 10)
-
-  // Get upcoming tasks (next 7 days)
-  const nextWeek = new Date()
-  nextWeek.setDate(nextWeek.getDate() + 7)
-  const nextWeekStr = nextWeek.toISOString().split('T')[0]
+  // 🟡 近日: 3天内截止（不含紧急）
   const upcomingTasks = allTasks
-    .filter(t => t.deadline && t.deadline >= today && t.deadline <= nextWeekStr && t.status !== '完了')
+    .filter(t => t.status !== '完了' && t.deadline && t.deadline > tomorrow && t.deadline <= next3days)
     .sort((a, b) => a.deadline!.localeCompare(b.deadline!))
     .slice(0, 10)
 
-  // Get recent completed
+  // 🟢 今後: 更远的未来
+  const futureTasks = allTasks
+    .filter(t => t.status !== '完了' && t.deadline && t.deadline > next3days)
+    .sort((a, b) => a.deadline!.localeCompare(b.deadline!))
+    .slice(0, 10)
+
+  // ✅ 最近完了
   const recentCompleted = allTasks
     .filter(t => t.status === '完了')
     .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''))
@@ -62,10 +66,10 @@ app.get('/', async (c) => {
   return c.html(DashboardPage({
     t,
     user,
-    stats: { total, urgent, today: todayTasks, completed },
+    stats: { total, urgent: urgentTasks.length, today: upcomingTasks.length, completed },
     urgentTasks,
-    todayDeadlineTasks,
     upcomingTasks,
+    futureTasks,
     recentCompleted,
     locale
   }))

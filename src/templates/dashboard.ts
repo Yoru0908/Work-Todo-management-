@@ -7,13 +7,13 @@ interface DashboardProps {
   user: User
   stats: { total: number; urgent: number; today: number; completed: number }
   urgentTasks?: Task[]
-  todayDeadlineTasks?: Task[]
   upcomingTasks?: Task[]
+  futureTasks?: Task[]
   recentCompleted?: Task[]
   locale: Locale
 }
 
-export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineTasks = [], upcomingTasks = [], recentCompleted = [], locale }: DashboardProps) {
+export function DashboardPage({ t, user, stats, urgentTasks = [], upcomingTasks = [], futureTasks = [], recentCompleted = [], locale }: DashboardProps) {
   const safeStats = stats || { total: 0, urgent: 0, today: 0, completed: 0 }
   const today = new Date().toISOString().split('T')[0]
 
@@ -45,11 +45,11 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineT
         </div>
         <div class="stat-info">
           <span class="stat-number">${safeStats.urgent}</span>
-          <span class="stat-label">${t.urgentTasks}</span>
+          <span class="stat-label">🔴 緊急</span>
         </div>
       </div>
 
-      <div class="stat-card" onclick="location.href='/tasks?deadline=today'">
+      <div class="stat-card" onclick="location.href='/tasks?deadline=soon'">
         <div class="stat-icon overdue">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -59,7 +59,7 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineT
         </div>
         <div class="stat-info">
           <span class="stat-number">${safeStats.today}</span>
-          <span class="stat-label">${t.todayTasks}</span>
+          <span class="stat-label">🟡 近日(3日)</span>
         </div>
       </div>
 
@@ -78,10 +78,11 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineT
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;">
-      <!-- 緊急タスク -->
+      <!-- 🔴 緊急タスク -->
       <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
         <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: var(--red); margin: 0;">🚨 緊急タスク (${urgentTasks.length}件)</h3>
+          <h3 style="color: var(--red); margin: 0;">🔴 緊急タスク (${urgentTasks.length}件)</h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">優先度「緊急」または今日・明日期限</p>
         </div>
         ${urgentTasks.length === 0 ? '<p style="color: var(--text-muted);">緊急タスクなし</p>' :
           '<div style="display: flex; flex-direction: column; gap: 8px;">' +
@@ -97,34 +98,16 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineT
         }
       </div>
 
-      <!-- 本日期限 -->
+      <!-- 🟡 近日タスク -->
       <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
         <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: var(--accent); margin: 0;">📅 本日(${today}) 截止 (${todayDeadlineTasks.length}件)</h3>
+          <h3 style="color: #D97706; margin: 0;">🟡 近日タスク (${upcomingTasks.length}件)</h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">3日以内に截止</p>
         </div>
-        ${todayDeadlineTasks.length === 0 ? '<p style="color: var(--text-muted);">本日のタスクなし</p>' :
-          '<div style="display: flex; flex-direction: column; gap: 8px;">' +
-          todayDeadlineTasks.map(task => `
-            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #FFFBEB; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--yellow);">
-              <div style="font-weight: 600; font-size: 0.9rem;">${task.isImportant ? '⭐ ' : ''}${task.title}</div>
-              <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
-                <span>${task.type}</span>
-                <span>👤 ${task.assignee || '未割当'}</span>
-              </div>
-            </div>
-          `).join('') + '</div>'
-        }
-      </div>
-
-      <!-- 今後のタスク -->
-      <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
-        <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: var(--primary); margin: 0;">📆 今後のタスク (${upcomingTasks.length}件)</h3>
-        </div>
-        ${upcomingTasks.length === 0 ? '<p style="color: var(--text-muted);">今後のタスクなし</p>' :
+        ${upcomingTasks.length === 0 ? '<p style="color: var(--text-muted);">近日タスクなし</p>' :
           '<div style="display: flex; flex-direction: column; gap: 8px;">' +
           upcomingTasks.map(task => `
-            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #EFF6FF; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--primary);">
+            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #FFFBEB; border-radius: 8px; cursor: pointer; border-left: 3px solid #D97706;">
               <div style="font-weight: 600; font-size: 0.9rem;">${task.isImportant ? '⭐ ' : ''}${task.title}</div>
               <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
                 <span>📅 ${task.deadline}</span>
@@ -135,15 +118,35 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineT
         }
       </div>
 
-      <!-- 最近完了 -->
+      <!-- 🟢 今後のタスク -->
       <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
         <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: var(--green); margin: 0;">✅ 最近完了 (${recentCompleted.length}件)</h3>
+          <h3 style="color: var(--green); margin: 0;">🟢 今後のタスク (${futureTasks.length}件)</h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">3日以降</p>
+        </div>
+        ${futureTasks.length === 0 ? '<p style="color: var(--text-muted);">今後のタスクなし</p>' :
+          '<div style="display: flex; flex-direction: column; gap: 8px;">' +
+          futureTasks.map(task => `
+            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #ECFDF5; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--green);">
+              <div style="font-weight: 600; font-size: 0.9rem;">${task.isImportant ? '⭐ ' : ''}${task.title}</div>
+              <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
+                <span>📅 ${task.deadline}</span>
+                <span>👤 ${task.assignee || '未割当'}</span>
+              </div>
+            </div>
+          `).join('') + '</div>'
+        }
+      </div>
+
+      <!-- ✅ 最近完了 -->
+      <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
+        <div class="section-header" style="margin-bottom: 16px;">
+          <h3 style="color: var(--primary); margin: 0;">✅ 最近完了 (${recentCompleted.length}件)</h3>
         </div>
         ${recentCompleted.length === 0 ? '<p style="color: var(--text-muted);">完了タスクなし</p>' :
           '<div style="display: flex; flex-direction: column; gap: 8px;">' +
           recentCompleted.map(task => `
-            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #ECFDF5; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--green);">
+            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #EFF6FF; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--primary);">
               <div style="font-weight: 600; font-size: 0.9rem; text-decoration: line-through; color: var(--text-muted);">${task.title}</div>
               <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
                 <span>👤 ${task.assignee || '未割当'}</span>
@@ -184,8 +187,8 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineT
     <script>
       if (typeof window !== 'undefined') {
         window.urgentTasks = ${JSON.stringify(urgentTasks)};
-        window.todayTasks = ${JSON.stringify(todayDeadlineTasks)};
         window.upcomingTasks = ${JSON.stringify(upcomingTasks)};
+        window.futureTasks = ${JSON.stringify(futureTasks)};
       }
     </script>
 
@@ -203,7 +206,6 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], todayDeadlineT
       <div class="panel-body" id="taskDetailContent">
         ${t.loading}
       </div>
-    </div>
   `
 
   return Layout({
