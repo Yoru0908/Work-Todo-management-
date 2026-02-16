@@ -829,7 +829,7 @@ async function addParsedTasks() {
       else added++;
     }
 
-    // Add guides as tasks with notes
+    // Add guides with category: 'guide' and content
     for (const cb of selectedGuides) {
       const idx = parseInt(cb.dataset.idx);
       const t = parsedTasksData[idx];
@@ -837,12 +837,13 @@ async function addParsedTasks() {
         method: 'POST',
         body: JSON.stringify({
           title: t.title || 'ガイド',
-          type: 'その他',
-          priority: '低',
+          type: 'ガイド',
+          category: 'guide',
+          content: t.notes || t.content || '',
+          priority: '中',
           status: '未着手',
           deadline: null,
-          assignee: '',
-          notes: t.notes || ''
+          assignee: ''
         })
       });
       if (error) { failed++; showToast('追加失敗: ' + error, 'error'); }

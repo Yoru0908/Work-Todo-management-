@@ -64,6 +64,7 @@ export interface Translations {
   role: string
   roleAdmin: string
   roleMember: string
+  quickActions: string
 }
 
 const ja: Translations = {
@@ -92,6 +93,7 @@ const ja: Translations = {
   skuDetails: 'SKU入庫明細',
   guides: 'ガイド',
   guideList: 'ガイド一覧',
+  relatedTask: '関連タスク',
   aiParse: 'AI解析追加',
   statusNotStarted: '未着手',
   statusInProgress: '着手中',
@@ -128,6 +130,7 @@ const ja: Translations = {
   role: '権限',
   roleAdmin: '管理者',
   roleMember: 'メンバー',
+  quickActions: 'クイックアクション',
 }
 
 const zh: Translations = {
@@ -156,6 +159,7 @@ const zh: Translations = {
   skuDetails: 'SKU明细',
   guides: '指南',
   guideList: '指南列表',
+  relatedTask: '关联任务',
   aiParse: 'AI解析添加',
   statusNotStarted: '未着手',
   statusInProgress: '进行中',
@@ -192,6 +196,7 @@ const zh: Translations = {
   role: '权限',
   roleAdmin: '管理员',
   roleMember: '成员',
+  quickActions: '快捷操作',
 }
 
 export const translations: Record<Locale, Translations> = { ja, zh }
