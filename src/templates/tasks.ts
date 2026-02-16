@@ -133,6 +133,13 @@ export function TasksPage({ t, user, tasks, locale }: TasksProps) {
           <form id="taskForm">
             <input type="hidden" id="taskId">
             <div class="form-group">
+              <label>カテゴリ</label>
+              <select id="taskCategory" onchange="toggleContentField()">
+                <option value="task">タスク</option>
+                <option value="guide">ガイド/重点事項</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label>タイトル</label>
               <input type="text" id="taskTitle" required>
             </div>
@@ -169,6 +176,11 @@ export function TasksPage({ t, user, tasks, locale }: TasksProps) {
             <div class="form-group">
               <label>依頼者</label>
               <input type="text" id="taskRequester">
+            </div>
+            <!-- Guide content field (shown when category is guide) -->
+            <div class="form-group hidden" id="taskContentGroup">
+              <label>ガイド内容</label>
+              <textarea id="taskContent" rows="6" placeholder="操作手順、注意点、重要事項を入力..."></textarea>
             </div>
             <div class="form-group">
               <label>備考</label>

@@ -453,6 +453,7 @@ function openTaskModal(task) {
   if (task) {
     document.getElementById('taskModalTitle').textContent = 'タスク編集';
     document.getElementById('taskId').value = task.id;
+    document.getElementById('taskCategory').value = task.category || 'task';
     document.getElementById('taskTitle').value = task.title;
     document.getElementById('taskType').value = task.type;
     document.getElementById('taskPriority').value = task.priority;
@@ -460,16 +461,31 @@ function openTaskModal(task) {
     document.getElementById('taskDeadline').value = task.deadline || '';
     document.getElementById('taskAssignee').value = task.assignee || '';
     document.getElementById('taskRequester').value = task.requester || '';
+    document.getElementById('taskContent').value = task.content || '';
     document.getElementById('taskNotes').value = task.notes || '';
     document.getElementById('taskImportant').checked = task.isImportant === 1;
   } else {
     document.getElementById('taskModalTitle').textContent = 'タスク追加';
     document.getElementById('taskForm').reset();
     document.getElementById('taskId').value = '';
+    document.getElementById('taskCategory').value = 'task';
     document.getElementById('taskPriority').value = '中';
     document.getElementById('taskStatus').value = '未着手';
   }
+  toggleContentField();
 }
+
+function toggleContentField() {
+  const category = document.getElementById('taskCategory').value;
+  const contentGroup = document.getElementById('taskContentGroup');
+  if (category === 'guide') {
+    contentGroup.classList.remove('hidden');
+  } else {
+    contentGroup.classList.add('hidden');
+  }
+}
+
+window.toggleContentField = toggleContentField;
 
 function closeTaskModal() {
   document.getElementById('taskModalOverlay').classList.add('hidden');
@@ -478,6 +494,7 @@ function closeTaskModal() {
 
 async function saveTask() {
   const id = document.getElementById('taskId').value;
+  const category = document.getElementById('taskCategory').value;
   const data = {
     title: document.getElementById('taskTitle').value,
     type: document.getElementById('taskType').value,
@@ -486,6 +503,8 @@ async function saveTask() {
     deadline: document.getElementById('taskDeadline').value || null,
     assignee: document.getElementById('taskAssignee').value,
     requester: document.getElementById('taskRequester').value,
+    category: category,
+    content: category === 'guide' ? document.getElementById('taskContent').value : null,
     notes: document.getElementById('taskNotes').value,
     isImportant: document.getElementById('taskImportant').checked ? 1 : 0
   };
@@ -531,9 +550,19 @@ async function openTaskDetail(id) {
 
     const priorityClass = task.priority === '緊急' ? 'tag-priority-緊急' : task.priority === '高' ? 'tag-priority-高' : task.priority === '中' ? 'tag-priority-中' : 'tag-priority-低';
     const statusClass = task.status === '完了' ? 'tag-status-完了' : task.status === '着手中' ? 'tag-status-着手中' : 'tag-status-未着手';
+    const isGuide = task.category === 'guide';
+    const guideBadge = isGuide ? '<span class="tag" style="background:#fee2e2;color:#dc2626;margin-left:8px">🚨 ガイド</span>' : '';
 
-    document.getElementById('taskDetailContent').innerHTML =
-      '<div class="panel-section"><div class="panel-section-title">基本情報</div>' +
+    let detailHtml = '';
+
+    // Guide content section (prominent display for guides)
+    if (isGuide && task.content) {
+      detailHtml += '<div class="panel-section" style="background:#FEF2F2;border-left:4px solid #dc2626;margin:-20px -20px 20px -20px;padding:20px;border-radius:8px 8px 0 0">' +
+        '<div class="panel-section-title" style="color:#991b1b">📌 ガイド内容</div>' +
+        '<pre style="white-space:pre-wrap;font-size:0.9rem;margin:0;color:#7f1d1d;line-height:1.8">' + escapeHtml(task.content) + '</pre></div>';
+    }
+
+    detailHtml += '<div class="panel-section"><div class="panel-section-title">基本情報' + guideBadge + '</div>' +
       '<div class="panel-field"><span class="panel-field-label">タイトル</span><span class="panel-field-value">' + (task.isImportant ? '⭐ ' : '') + escapeHtml(task.title) + '</span></div>' +
       '<div class="panel-field"><span class="panel-field-label">種類</span><span class="panel-field-value tag tag-type">' + task.type + '</span></div>' +
       '<div class="panel-field"><span class="panel-field-label">優先度</span><span class="panel-field-value tag ' + priorityClass + '">' + task.priority + '</span></div>' +
@@ -541,14 +570,34 @@ async function openTaskDetail(id) {
       '<div class="panel-field"><span class="panel-field-label">期限</span><span class="panel-field-value">' + (task.deadline || '-') + '</span></div>' +
       '<div class="panel-field"><span class="panel-field-label">担当者</span><span class="panel-field-value">' + (task.assignee || '-') + '</span></div>' +
       '<div class="panel-field"><span class="panel-field-label">依頼者</span><span class="panel-field-value">' + (task.requester || '-') + '</span></div>' +
-      '<div class="panel-field"><span class="panel-field-label">出荷先</span><span class="panel-field-value">' + (task.destination || '-') + '</span></div></div>' +
-      (task.notes ? '<div class="panel-section"><div class="panel-section-title">詳細/ガイド</div><div class="panel-field"><pre style="white-space:pre-wrap;font-size:0.85rem;margin:0;">' + escapeHtml(task.notes) + '</pre></div></div>' : '') +
-      '<div class="panel-section"><div class="panel-section-title">サブタスク <button class="btn-icon" onclick="openSubtaskModal(' + task.id + ')" style="float:right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>' +
-      (subtasks.length === 0 ? '<p style="color: var(--text-muted);">なし</p>' : subtasks.map(function(s) { return '<div class="panel-field" style="display:flex;justify-content:space-between;align-items:center"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" ' + (s.status === "完了" ? "checked" : "") + ' onchange="toggleSubtask(' + s.id + ', this.checked)"> <span style="' + (s.status === "完了" ? "text-decoration:line-through;color:#9ca3af" : "") + '">' + escapeHtml(s.title) + '</span></label></div>'; }).join('')) + '</div>' +
-      '<div class="panel-section"><div class="panel-section-title">メモ <button class="btn-icon" onclick="openNoteModal(' + task.id + ')" style="float:right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>' +
-      (notes.length === 0 ? '<p style="color: var(--text-muted);">なし</p>' : notes.map(function(n) { return '<div class="panel-field" style="background:#f8fafc;padding:8px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px">' + (n.createdAt ? n.createdAt.substring(0, 10) : '') + '</div>' + escapeHtml(n.content) + '</div>'; }).join('')) + '</div>' +
-      (requirements && requirements.length > 0 ? '<div class="panel-section"><div class="panel-section-title">需求更新 <button class="btn-icon" onclick="openRequirementModal(' + task.id + ')" style="float:right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>' + requirements.map(function(r) { return '<div class="panel-field" style="background:#fef9c3;padding:8px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.75rem;color:#a16207;margin-bottom:4px">' + (r.createdAt ? r.createdAt.substring(0, 10) : '') + '</div>' + escapeHtml(r.content) + '</div>'; }).join('') + '</div>' : '') +
-      (history && history.length > 0 ? '<div class="panel-section"><div class="panel-section-title">変更履歴</div>' + history.map(function(h) { return '<div class="panel-field" style="font-size:0.8rem;color:#6b7280"><span>' + (h.changedAt ? h.changedAt.substring(0, 16) : '') + '</span> <span>' + (h.fieldName === 'created' ? '作成' : h.fieldName) + ':</span> <span>' + escapeHtml(h.newValue || '-') + '</span></div>'; }).join('') + '</div>' : '');
+      '<div class="panel-field"><span class="panel-field-label">出荷先</span><span class="panel-field-value">' + (task.destination || '-') + '</span></div></div>';
+
+    // Notes section (skip for guides if content is shown)
+    if (task.notes && !isGuide) {
+      detailHtml += '<div class="panel-section"><div class="panel-section-title">詳細</div><div class="panel-field"><pre style="white-space:pre-wrap;font-size:0.85rem;margin:0;">' + escapeHtml(task.notes) + '</pre></div></div>';
+    }
+
+    // Subtasks (only for tasks, not guides)
+    if (!isGuide) {
+      detailHtml += '<div class="panel-section"><div class="panel-section-title">サブタスク <button class="btn-icon" onclick="openSubtaskModal(' + task.id + ')" style="float:right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>' +
+        (subtasks.length === 0 ? '<p style="color: var(--text-muted);">なし</p>' : subtasks.map(function(s) { return '<div class="panel-field" style="display:flex;justify-content:space-between;align-items:center"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" ' + (s.status === "完了" ? "checked" : "") + ' onchange="toggleSubtask(' + s.id + ', this.checked)"> <span style="' + (s.status === "完了" ? "text-decoration:line-through;color:#9ca3af" : "") + '">' + escapeHtml(s.title) + '</span></label></div>'; }).join('')) + '</div>';
+    }
+
+    // Notes
+    detailHtml += '<div class="panel-section"><div class="panel-section-title">メモ <button class="btn-icon" onclick="openNoteModal(' + task.id + ')" style="float:right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>' +
+      (notes.length === 0 ? '<p style="color: var(--text-muted);">なし</p>' : notes.map(function(n) { return '<div class="panel-field" style="background:#f8fafc;padding:8px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px">' + (n.createdAt ? n.createdAt.substring(0, 10) : '') + '</div>' + escapeHtml(n.content) + '</div>'; }).join('')) + '</div>';
+
+    // Requirements (only for tasks)
+    if (!isGuide && requirements && requirements.length > 0) {
+      detailHtml += '<div class="panel-section"><div class="panel-section-title">需求更新 <button class="btn-icon" onclick="openRequirementModal(' + task.id + ')" style="float:right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>' + requirements.map(function(r) { return '<div class="panel-field" style="background:#fef9c3;padding:8px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.75rem;color:#a16207;margin-bottom:4px">' + (r.createdAt ? r.createdAt.substring(0, 10) : '') + '</div>' + escapeHtml(r.content) + '</div>'; }).join('') + '</div>';
+    }
+
+    // History
+    if (history && history.length > 0) {
+      detailHtml += '<div class="panel-section"><div class="panel-section-title">変更履歴</div>' + history.map(function(h) { return '<div class="panel-field" style="font-size:0.8rem;color:#6b7280"><span>' + (h.changedAt ? h.changedAt.substring(0, 16) : '') + '</span> <span>' + (h.fieldName === 'created' ? '作成' : h.fieldName) + ':</span> <span>' + escapeHtml(h.newValue || '-') + '</span></div>'; }).join('') + '</div>';
+    }
+
+    document.getElementById('taskDetailContent').innerHTML = detailHtml;
   } catch (e) { showToast(e.message, 'error'); }
 }
 
