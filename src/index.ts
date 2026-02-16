@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { authMiddleware } from './auth'
 import authRoutes from './routes/auth'
 import taskRoutes from './routes/tasks'
+import guideRoutes from './routes/guides'
 import scheduleRoutes from './routes/schedule'
 import skuRoutes from './routes/sku'
 
@@ -522,6 +523,84 @@ async function deleteTask(id) {
   if (!confirm('このタスクを削除しますか？')) return;
   try { await apiRequest('/api/tasks/' + id, { method: 'DELETE' }); location.reload(); }
   catch (e) { showToast(e.message, 'error'); }
+}
+
+// Guide Modal Functions
+function openGuideModal(guide) {
+  document.getElementById('guideModalOverlay').classList.remove('hidden');
+  document.getElementById('guideModal').classList.remove('hidden');
+  if (guide) {
+    document.getElementById('guideModalTitle').textContent = 'ガイド編集';
+    document.getElementById('guideId').value = guide.id;
+    document.getElementById('guideTitle').value = guide.title;
+    document.getElementById('guideContent').value = guide.content || '';
+    document.getElementById('guideRequester').value = guide.requester || '';
+    document.getElementById('guideDeadline').value = guide.deadline || '';
+    // Extract related task from content
+    const match = guide.content ? guide.content.match(/\[関連タスク:?\s*([^\]]+)\]/) : null;
+    if (match) {
+      const relatedTitle = match[1].trim();
+      // Try to find matching task
+      const relatedTask = window.allTasks ? window.allTasks.find(t => t.title.toLowerCase().includes(relatedTitle.toLowerCase())) : null;
+      if (relatedTask) {
+        document.getElementById('guideRelatedTask').value = relatedTask.id;
+      }
+    }
+  } else {
+    document.getElementById('guideModalTitle').textContent = 'ガイド追加';
+    document.getElementById('guideForm').reset();
+    document.getElementById('guideId').value = '';
+  }
+}
+
+function closeGuideModal() {
+  document.getElementById('guideModalOverlay').classList.add('hidden');
+  document.getElementById('guideModal').classList.add('hidden');
+}
+
+async function saveGuide() {
+  const id = document.getElementById('guideId').value;
+  const relatedTaskId = document.getElementById('guideRelatedTask').value;
+  let content = document.getElementById('guideContent').value;
+
+  // Add related task reference at the beginning if selected
+  if (relatedTaskId) {
+    const relatedTask = window.allTasks.find(t => t.id === parseInt(relatedTaskId));
+    if (relatedTask) {
+      const refLine = '[関連タスク: ' + relatedTask.id + ']\n';
+      if (!content.startsWith('[関連タスク:')) {
+        content = refLine + content;
+      }
+    }
+  }
+
+  const data = {
+    title: document.getElementById('guideTitle').value,
+    category: 'guide',
+    content: content,
+    requester: document.getElementById('guideRequester').value,
+    deadline: document.getElementById('guideDeadline').value || null,
+    status: '未着手',
+    type: 'ガイド',
+    priority: '中'
+  };
+
+  try {
+    if (id) {
+      await apiRequest('/api/tasks/' + id, { method: 'PATCH', body: JSON.stringify(data) });
+    } else {
+      await apiRequest('/api/tasks', { method: 'POST', body: JSON.stringify(data) });
+    }
+    closeGuideModal();
+    location.reload();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function editGuide(id) {
+  const guide = window.guides.find(g => g.id === id);
+  if (guide) {
+    openGuideModal(guide);
+  }
 }
 
 function filterTasks() {
@@ -1113,6 +1192,10 @@ window.closeTaskModal = closeTaskModal;
 window.saveTask = saveTask;
 window.editTask = editTask;
 window.deleteTask = deleteTask;
+window.openGuideModal = openGuideModal;
+window.closeGuideModal = closeGuideModal;
+window.saveGuide = saveGuide;
+window.editGuide = editGuide;
 window.filterTasks = filterTasks;
 window.openTaskDetail = openTaskDetail;
 window.closeTaskDetail = closeTaskDetail;
@@ -1176,6 +1259,7 @@ app.use('*', async (c, next) => {
 // Routes
 app.route('/', authRoutes)
 app.route('/', taskRoutes)
+app.route('/guides', guideRoutes)
 app.route('/schedule', scheduleRoutes)
 app.route('/sku', skuRoutes)
 

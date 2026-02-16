@@ -25,6 +25,9 @@ export interface Translations {
   admin: string
   inventorySchedule: string
   skuDetails: string
+  guides: string
+  guideList: string
+  relatedTask: string
   aiParse: string
   statusNotStarted: string
   statusInProgress: string
@@ -87,6 +90,8 @@ const ja: Translations = {
   admin: '管理者設定',
   inventorySchedule: '新入庫スケジュール',
   skuDetails: 'SKU入庫明細',
+  guides: 'ガイド',
+  guideList: 'ガイド一覧',
   aiParse: 'AI解析追加',
   statusNotStarted: '未着手',
   statusInProgress: '着手中',
@@ -149,6 +154,8 @@ const zh: Translations = {
   admin: '管理设置',
   inventorySchedule: '进货日程',
   skuDetails: 'SKU明细',
+  guides: '指南',
+  guideList: '指南列表',
   aiParse: 'AI解析添加',
   statusNotStarted: '未着手',
   statusInProgress: '进行中',
