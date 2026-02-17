@@ -362,10 +362,10 @@ h1, h2, h3, h4 {
 /* Modals */
 .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 600px; max-width: 90vw; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 999; }
-.modal-content { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
-.modal-body { padding: 24px; }
-.form-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 20px 24px; border-top: 1px solid var(--border); }
+.modal-content { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-height: 90vh; display: flex; flex-direction: column; }
+.modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 20px 24px; border-top: 1px solid var(--border); flex-shrink: 0; }
 
 /* Brand Section */
 .brand-section { margin-bottom: 32px; }
@@ -413,6 +413,39 @@ h1, h2, h3, h4 {
 const JS = `// Frontend Application JavaScript
 
 const lang = window.currentLang || 'ja';
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  // ESC to close modals
+  if (e.key === 'Escape') {
+    if (!document.getElementById('taskModal').classList.contains('hidden')) {
+      closeTaskModal();
+    } else if (!document.getElementById('guideModal').classList.contains('hidden')) {
+      closeGuideModal();
+    } else if (!document.getElementById('scheduleModal').classList.contains('hidden')) {
+      closeScheduleModal();
+    } else if (!document.getElementById('skuModal').classList.contains('hidden')) {
+      closeSkuModal();
+    } else if (!document.getElementById('taskPanel').classList.contains('hidden')) {
+      closeTaskDetail();
+    }
+  }
+  // Enter to submit form (when modal is open)
+  if (e.key === 'Enter' && !e.shiftKey) {
+    const target = e.target;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      const modal = target.closest('.modal');
+      if (modal && !modal.classList.contains('hidden')) {
+        const saveBtn = modal.querySelector('.btn-primary') ||
+                        modal.querySelector('button[onclick*="save"]');
+        if (saveBtn && saveBtn.onclick) {
+          e.preventDefault();
+          saveBtn.onclick();
+        }
+      }
+    }
+  }
+});
 
 function showToast(message, type = 'success') {
   const toast = document.createElement('div');
