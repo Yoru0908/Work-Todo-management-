@@ -10,13 +10,12 @@ interface DashboardProps {
   upcomingTasks?: Task[]
   futureTasks?: Task[]
   recentCompleted?: Task[]
-  guides?: Task[]  // ガイド/重点事項
+  guides?: Task[]
   locale: Locale
 }
 
 export function DashboardPage({ t, user, stats, urgentTasks = [], upcomingTasks = [], futureTasks = [], recentCompleted = [], guides = [], locale }: DashboardProps) {
   const safeStats = stats || { total: 0, urgent: 0, today: 0, completed: 0 }
-  const today = new Date().toISOString().split('T')[0]
 
   const content = `
     <div class="page-header">
@@ -24,185 +23,187 @@ export function DashboardPage({ t, user, stats, urgentTasks = [], upcomingTasks 
       <span class="header-date">${new Date().toLocaleDateString(locale === 'ja' ? 'ja-JP' : 'zh-CN')}</span>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card" onclick="location.href='/tasks'">
-        <div class="stat-icon" style="background: var(--blue-bg); color: var(--blue);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number">${safeStats.total}</span>
-          <span class="stat-label">${t.totalTasks}</span>
-        </div>
-      </div>
-
-      <div class="stat-card" onclick="location.href='/tasks?priority=緊急'">
-        <div class="stat-icon urgent">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number">${safeStats.urgent}</span>
-          <span class="stat-label">🔴 緊急</span>
-        </div>
-      </div>
-
-      <div class="stat-card" onclick="location.href='/tasks?deadline=soon'">
-        <div class="stat-icon overdue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number">${safeStats.today}</span>
-          <span class="stat-label">🟡 近日(3日)</span>
-        </div>
-      </div>
-
-      <div class="stat-card" onclick="location.href='/tasks?status=完了'">
-        <div class="stat-icon done">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-            <polyline points="22,4 12,14.01 9,11.01"/>
-          </svg>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number">${safeStats.completed}</span>
-          <span class="stat-label">${t.completedTasks}</span>
-        </div>
-      </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;">
-      <!-- 🔴 緊急タスク -->
-      <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
-        <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: var(--red); margin: 0;">🔴 緊急タスク (${urgentTasks.length}件)</h3>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">優先度「緊急」または今日・明日期限</p>
-        </div>
-        ${urgentTasks.length === 0 ? '<p style="color: var(--text-muted);">緊急タスクなし</p>' :
-          '<div style="display: flex; flex-direction: column; gap: 8px;">' +
-          urgentTasks.map(task => `
-            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #FEF2F2; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--red);">
-              <div style="font-weight: 600; font-size: 0.9rem;">${task.isImportant ? '⭐ ' : ''}${task.title}</div>
-              <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
-                <span>📅 ${task.deadline || '期限なし'}</span>
-                <span>👤 ${task.assignee || '未割当'}</span>
-              </div>
-            </div>
-          `).join('') + '</div>'
-        }
-      </div>
-
-      <!-- 🟡 近日タスク -->
-      <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
-        <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: #D97706; margin: 0;">🟡 近日タスク (${upcomingTasks.length}件)</h3>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">3日以内に截止</p>
-        </div>
-        ${upcomingTasks.length === 0 ? '<p style="color: var(--text-muted);">近日タスクなし</p>' :
-          '<div style="display: flex; flex-direction: column; gap: 8px;">' +
-          upcomingTasks.map(task => `
-            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #FFFBEB; border-radius: 8px; cursor: pointer; border-left: 3px solid #D97706;">
-              <div style="font-weight: 600; font-size: 0.9rem;">${task.isImportant ? '⭐ ' : ''}${task.title}</div>
-              <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
-                <span>📅 ${task.deadline}</span>
-                <span>👤 ${task.assignee || '未割当'}</span>
-              </div>
-            </div>
-          `).join('') + '</div>'
-        }
-      </div>
-
-      <!-- 🟢 今後のタスク -->
-      <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
-        <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: var(--green); margin: 0;">🟢 今後のタスク (${futureTasks.length}件)</h3>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">3日以降</p>
-        </div>
-        ${futureTasks.length === 0 ? '<p style="color: var(--text-muted);">今後のタスクなし</p>' :
-          '<div style="display: flex; flex-direction: column; gap: 8px;">' +
-          futureTasks.map(task => `
-            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #ECFDF5; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--green);">
-              <div style="font-weight: 600; font-size: 0.9rem;">${task.isImportant ? '⭐ ' : ''}${task.title}</div>
-              <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
-                <span>📅 ${task.deadline}</span>
-                <span>👤 ${task.assignee || '未割当'}</span>
-              </div>
-            </div>
-          `).join('') + '</div>'
-        }
-      </div>
-
-      <!-- ✅ 最近完了 -->
-      <div class="section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow);">
-        <div class="section-header" style="margin-bottom: 16px;">
-          <h3 style="color: var(--primary); margin: 0;">✅ 最近完了 (${recentCompleted.length}件)</h3>
-        </div>
-        ${recentCompleted.length === 0 ? '<p style="color: var(--text-muted);">完了タスクなし</p>' :
-          '<div style="display: flex; flex-direction: column; gap: 8px;">' +
-          recentCompleted.map(task => `
-            <div onclick="openTaskDetail(${task.id})" style="padding: 12px; background: #EFF6FF; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--primary);">
-              <div style="font-weight: 600; font-size: 0.9rem; text-decoration: line-through; color: var(--text-muted);">${task.title}</div>
-              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-                <span>👤 ${task.assignee || '未割当'}</span>
-              </div>
-            </div>
-          `).join('') + '</div>'
-        }
-      </div>
-    </div>
-
-    <!-- 🚨 ガイド/重点事項 -->
-    <div class="section" style="margin-top: 24px;">
-      <div class="section-header" style="margin-bottom: 16px;">
-        <h3 style="color: #dc2626; margin: 0;">🚨 ガイド/重点事項 (${guides.length}件)</h3>
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">操作手順、注意点、重要事項</p>
-      </div>
-      ${guides.length === 0 ? '<p style="color: var(--text-muted);">ガイドなし</p>' :
-        '<div style="display: flex; flex-direction: column; gap: 8px;">' +
-        guides.map(guide => `
-          <div onclick="openTaskDetail(${guide.id})" style="padding: 14px; background: #FEF2F2; border-radius: 8px; cursor: pointer; border-left: 4px solid #dc2626; box-shadow: var(--shadow-sm);">
-            <div style="font-weight: 600; font-size: 0.95rem; color: #991b1b;">📌 ${guide.title}</div>
-            <div style="font-size: 0.8rem; color: #7f1d1d; margin-top: 6px; white-space: pre-wrap;">${guide.content ? (guide.content.substring(0, 150) + (guide.content.length > 150 ? '...' : '')) : (guide.notes || '')}</div>
-            <div style="display: flex; gap: 12px; margin-top: 8px; font-size: 0.75rem; color: #7f1d1d; opacity: 0.8;">
-              <span>👤 ${guide.requester || '—'}</span>
-              <span>📅 ${guide.deadline || '期限なし'}</span>
-            </div>
+    <!-- Stats Grid -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+      <div class="stat-card" onclick="location.href='/tasks'" style="background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; background: #EFF6FF; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" width="20" height="20">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
           </div>
-        `).join('') + '</div>'
-      }
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #1E293B;">${safeStats.total}</div>
+            <div style="font-size: 0.75rem; color: #64748B;">総タスク数</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card" onclick="location.href='/tasks?priority=緊急'" style="background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; background: #FEF2F2; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" width="20" height="20">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #DC2626;">${safeStats.urgent}</div>
+            <div style="font-size: 0.75rem; color: #64748B;">緊急</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card" onclick="location.href='/tasks?deadline=soon'" style="background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; background: #FEF3C7; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" width="20" height="20">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #D97706;">${safeStats.today}</div>
+            <div style="font-size: 0.75rem; color: #64748B;">近日(3日)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card" onclick="location.href='/tasks?status=完了'" style="background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; background: #DCFCE7; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" width="20" height="20">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+              <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #16A34A;">${safeStats.completed}</div>
+            <div style="font-size: 0.75rem; color: #64748B;">完了</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="section">
-      <div class="section-header">
-        <h3>${t.quickActions}</h3>
+    <!-- Main Content Grid -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+      <!-- Left Column: Tasks -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- Urgent Tasks -->
+        <div style="background: var(--bg-card); border-radius: 8px; padding: 16px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="color: #DC2626; margin: 0; font-size: 0.9rem; font-weight: 600;">緊急タスク</h3>
+            <span style="background: #FEF2F2; color: #DC2626; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">${urgentTasks.length}件</span>
+          </div>
+          ${urgentTasks.length === 0 ? '<p style="color: #94A3B8; font-size: 0.85rem;">緊急タスクなし</p>' :
+            '<div style="display: flex; flex-direction: column; gap: 8px;">' +
+            urgentTasks.slice(0, 5).map(task => `
+              <div onclick="openTaskDetail(${task.id})" style="padding: 10px; background: #FEF2F2; border-radius: 6px; cursor: pointer; border-left: 3px solid #DC2626;">
+                <div style="font-weight: 500; font-size: 0.85rem; color: #1E293B;">${task.title}</div>
+                <div style="display: flex; gap: 8px; margin-top: 4px; font-size: 0.75rem; color: #64748B;">
+                  <span>${task.deadline || '期限なし'}</span>
+                  <span>|</span>
+                  <span>${task.assignee || '未割当'}</span>
+                </div>
+              </div>
+            `).join('') + '</div>'
+          }
+        </div>
+
+        <!-- Upcoming Tasks -->
+        <div style="background: var(--bg-card); border-radius: 8px; padding: 16px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="color: #D97706; margin: 0; font-size: 0.9rem; font-weight: 600;">近日タスク</h3>
+            <span style="background: #FEF3C7; color: #D97706; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">${upcomingTasks.length}件</span>
+          </div>
+          ${upcomingTasks.length === 0 ? '<p style="color: #94A3B8; font-size: 0.85rem;">近日タスクなし</p>' :
+            '<div style="display: flex; flex-direction: column; gap: 8px;">' +
+            upcomingTasks.slice(0, 5).map(task => `
+              <div onclick="openTaskDetail(${task.id})" style="padding: 10px; background: #FEF3C7; border-radius: 6px; cursor: pointer; border-left: 3px solid #D97706;">
+                <div style="font-weight: 500; font-size: 0.85rem; color: #1E293B;">${task.title}</div>
+                <div style="display: flex; gap: 8px; margin-top: 4px; font-size: 0.75rem; color: #64748B;">
+                  <span>${task.deadline}</span>
+                  <span>|</span>
+                  <span>${task.assignee || '未割当'}</span>
+                </div>
+              </div>
+            `).join('') + '</div>'
+          }
+        </div>
+
+        <!-- Guides -->
+        <div style="background: var(--bg-card); border-radius: 8px; padding: 16px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="color: #DC2626; margin: 0; font-size: 0.9rem; font-weight: 600;">ガイド/重点事項</h3>
+            <a href="/guides" style="color: #3B82F6; font-size: 0.75rem; text-decoration: none;">すべて表示</a>
+          </div>
+          ${guides.length === 0 ? '<p style="color: #94A3B8; font-size: 0.85rem;">ガイドなし</p>' :
+            '<div style="display: flex; flex-direction: column; gap: 8px;">' +
+            guides.slice(0, 3).map(guide => `
+              <div onclick="openTaskDetail(${guide.id})" style="padding: 10px; background: #FEF2F2; border-radius: 6px; cursor: pointer; border-left: 3px solid #DC2626;">
+                <div style="font-weight: 500; font-size: 0.85rem; color: #991B1B;">${guide.title}</div>
+                <div style="font-size: 0.75rem; color: #7F1D1B; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${guide.content ? guide.content.substring(0, 50) : ''}...</div>
+              </div>
+            `).join('') + '</div>'
+          }
+        </div>
       </div>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="/tasks?action=new" class="btn btn-primary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          ${t.add} ${t.taskList}
-        </a>
-        <a href="/schedule" class="btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-          </svg>
-          ${t.inventorySchedule}
-        </a>
-        <a href="/sku" class="btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-          </svg>
-          ${t.skuDetails}
-        </a>
+
+      <!-- Right Column: Future + Completed -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- Future Tasks -->
+        <div style="background: var(--bg-card); border-radius: 8px; padding: 16px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="color: #16A34A; margin: 0; font-size: 0.9rem; font-weight: 600;">今後のタスク</h3>
+            <span style="background: #DCFCE7; color: #16A34A; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">${futureTasks.length}件</span>
+          </div>
+          ${futureTasks.length === 0 ? '<p style="color: #94A3B8; font-size: 0.85rem;">今後のタスクなし</p>' :
+            '<div style="display: flex; flex-direction: column; gap: 8px;">' +
+            futureTasks.slice(0, 5).map(task => `
+              <div onclick="openTaskDetail(${task.id})" style="padding: 10px; background: #F0FDF4; border-radius: 6px; cursor: pointer; border-left: 3px solid #16A34A;">
+                <div style="font-weight: 500; font-size: 0.85rem; color: #1E293B;">${task.title}</div>
+                <div style="font-size: 0.75rem; color: #64748B; margin-top: 4px;">${task.deadline}</div>
+              </div>
+            `).join('') + '</div>'
+          }
+        </div>
+
+        <!-- Recently Completed -->
+        <div style="background: var(--bg-card); border-radius: 8px; padding: 16px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="color: #3B82F6; margin: 0; font-size: 0.9rem; font-weight: 600;">最近完了</h3>
+            <span style="background: #EFF6FF; color: #3B82F6; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">${recentCompleted.length}件</span>
+          </div>
+          ${recentCompleted.length === 0 ? '<p style="color: #94A3B8; font-size: 0.85rem;">完了タスクなし</p>' :
+            '<div style="display: flex; flex-direction: column; gap: 8px;">' +
+            recentCompleted.slice(0, 5).map(task => `
+              <div onclick="openTaskDetail(${task.id})" style="padding: 10px; background: #F8FAFC; border-radius: 6px; cursor: pointer; border-left: 3px solid #3B82F6; opacity: 0.8;">
+                <div style="font-weight: 500; font-size: 0.85rem; color: #64748B; text-decoration: line-through;">${task.title}</div>
+                <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 4px;">${task.assignee || '—'}</div>
+              </div>
+            `).join('') + '</div>'
+          }
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="background: var(--bg-card); border-radius: 8px; padding: 16px; box-shadow: var(--shadow-sm);">
+          <h3 style="color: #1E293B; margin: 0 0 12px 0; font-size: 0.9rem; font-weight: 600;">クイックアクション</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="/tasks?action=new" class="btn btn-primary" style="font-size: 0.8rem; padding: 8px 12px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              タスク追加
+            </a>
+            <a href="/schedule" class="btn" style="font-size: 0.8rem; padding: 8px 12px;">スケジュール</a>
+            <a href="/sku" class="btn" style="font-size: 0.8rem; padding: 8px 12px;">SKU</a>
+            <a href="/guides" class="btn" style="font-size: 0.8rem; padding: 8px 12px;">ガイド</a>
+          </div>
+        </div>
       </div>
     </div>
 
