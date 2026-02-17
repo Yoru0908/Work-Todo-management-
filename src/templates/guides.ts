@@ -33,18 +33,30 @@ export function GuidesPage({ t, user, guides, allTasks, locale }: GuidesProps) {
       ${guides.length === 0 ? `
         <p style="color: var(--text-muted);">ガイドがありません</p>
       ` : guides.map(guide => {
-        // Extract related task from content
-        const relatedMatch = guide.content ? guide.content.match(/\[関連タスク:?\s*([^\]]+)\]/) : null;
-        const relatedTaskId = relatedMatch ? parseInt(relatedMatch[1]) : null;
-        const relatedTaskTitle = relatedMatch ? relatedMatch[1].trim() : null;
+        // Extract related task from content - simple string search
+        let relatedTaskId = null;
+        let relatedTaskTitle = '';
+        if (guide.content && guide.content.includes('[関連タスク:')) {
+          const start = guide.content.indexOf('[関連タスク:') + '[関連タスク:'.length;
+          const end = guide.content.indexOf(']', start);
+          if (end > start) {
+            const val = guide.content.substring(start, end).trim();
+            const num = parseInt(val);
+            if (!isNaN(num)) relatedTaskId = num;
+            else relatedTaskTitle = val;
+          }
+        }
 
         // Find the related task
         let relatedTask = null;
-        if (relatedTaskId && !isNaN(relatedTaskId)) {
+        if (relatedTaskId) {
           relatedTask = allTasks.find(t => t.id === relatedTaskId);
         } else if (relatedTaskTitle) {
           relatedTask = allTasks.find(t => t.title.toLowerCase().includes(relatedTaskTitle.toLowerCase()));
         }
+
+        // Clean content by removing related task line
+        const cleanContent = guide.content ? guide.content.replace(/\[関連タスク: [^\]]+\]/g, '').trim() : '';
 
         return `
           <div class="guide-card" onclick="openTaskDetail(${guide.id})" style="background: #FEF2F2; border-left: 4px solid #dc2626; border-radius: 8px; padding: 16px; cursor: pointer; margin-bottom: 12px; box-shadow: var(--shadow-sm);">
@@ -65,8 +77,8 @@ export function GuidesPage({ t, user, guides, allTasks, locale }: GuidesProps) {
               </div>
             ` : ''}
             <div style="font-size: 0.85rem; color: #7f1d1d; white-space: pre-wrap; max-height: 120px; overflow: hidden; position: relative;">
-              ${guide.content ? guide.content.replace(/\[関連タスク: [^\]]+\]/, '').trim() : guide.notes || ''}
-              ${(guide.content || guide.notes || '').length > 200 ? '<div style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: linear-gradient(transparent, #FEF2F2);"></div>' : ''}
+              ${cleanContent || guide.notes || ''}
+              ${(cleanContent || guide.notes || '').length > 200 ? '<div style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: linear-gradient(transparent, #FEF2F2);"></div>' : ''}
             </div>
             <div style="display: flex; gap: 12px; margin-top: 12px; font-size: 0.75rem; color: #7f1d1d; opacity: 0.8;">
               <span>👤 ${guide.requester || '—'}</span>

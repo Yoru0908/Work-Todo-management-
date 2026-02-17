@@ -17,13 +17,12 @@ export function TasksPage({ t, user, tasks, locale }: TasksProps) {
   const content = `
     <div class="page-header">
       <h2>${t.taskList}</h2>
-      <button class="btn btn-primary" id="addTaskBtn">
+      <button class="btn btn-primary" id="addTaskBtn" onclick="openTaskModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
         ${t.add}
       </button>
-      <script>document.getElementById('addTaskBtn').onclick = function() { console.log('clicked'); if(typeof openTaskModal==="function"){openTaskModal();}else{alert("openTaskModal not defined! JS load error.");} };</script>
     </div>
 
     <div class="tabs">

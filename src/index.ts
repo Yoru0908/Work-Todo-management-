@@ -536,10 +536,16 @@ function openGuideModal(guide) {
     document.getElementById('guideContent').value = guide.content || '';
     document.getElementById('guideRequester').value = guide.requester || '';
     document.getElementById('guideDeadline').value = guide.deadline || '';
-    // Extract related task from content
-    const match = guide.content ? guide.content.match(/\[関連タスク:?\s*([^\]]+)\]/) : null;
-    if (match) {
-      const relatedTitle = match[1].trim();
+    // Extract related task from content - use simple string search instead of regex
+    let relatedTitle = '';
+    if (guide.content && guide.content.includes('[関連タスク:')) {
+      const start = guide.content.indexOf('[関連タスク:') + '[関連タスク:'.length;
+      const end = guide.content.indexOf(']', start);
+      if (end > start) {
+        relatedTitle = guide.content.substring(start, end).trim();
+      }
+    }
+    if (relatedTitle) {
       // Try to find matching task
       const relatedTask = window.allTasks ? window.allTasks.find(t => t.title.toLowerCase().includes(relatedTitle.toLowerCase())) : null;
       if (relatedTask) {
