@@ -573,7 +573,7 @@ async function saveGuide() {
   if (relatedTaskId) {
     const relatedTask = window.allTasks.find(t => t.id === parseInt(relatedTaskId));
     if (relatedTask) {
-      const refLine = '[関連タスク: ' + relatedTask.id + ']\n';
+      const refLine = '[関連タスク: ' + relatedTask.id + ']\\n';
       if (!content.startsWith('[関連タスク:')) {
         content = refLine + content;
       }
